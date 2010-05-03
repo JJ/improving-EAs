@@ -19,7 +19,7 @@ for ( 1..$generations ) {
   my @sorted_population = sort { $fitness_of{$b} 
 				   <=> $fitness_of{$a} } @population;
   my @best = @sorted_population[0,1];
-  print $best[0], " ", $fitness_of{$best[0]}, "\n";
+#  print $best[0], " ", $fitness_of{$best[0]}, "\n";
   my @wheel = compute_wheel( \@sorted_population );
   my @slots = spin( \@wheel, $population_size );
   my @pool;
@@ -96,11 +96,8 @@ sub crossover {
 
 sub compute_fitness {
   my $chromosome = shift;
-  my $unos = 0;
-  for ( my $i = 0; $i < length($chromosome); $i ++ ) {
-      $unos += substr($chromosome, $i, 1 );
-  }
-  $fitness_of{$chromosome} = $unos;
+  my $copy_of = $chromosome;
+  $fitness_of{$chromosome} = ($copy_of =~ tr/1/0/);
 }
 
 
