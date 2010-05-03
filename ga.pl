@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use sort '_quicksort';
+use Sort::Key qw(rnkeysort);
 
 my $chromosome_length = shift || 16;
 my $population_size = shift || 32;
@@ -25,8 +25,7 @@ do {
     my $total_fitness = 0;
     map( ((!$fitness_of{$_})?compute_fitness( $_ ):1) 
 	 && ( $total_fitness += $fitness_of{$_} ), @population );
-    my @sorted_population = sort { $fitness_of{$b} 
-				   <=> $fitness_of{$a} } @population;
+    my @sorted_population = rnkeysort { $fitness_of{$_} } @population;
     @best = @sorted_population[0,1];
 #    print $best[0], " ", $fitness_of{$best[0]}, "\n";
     my @wheel = map( $fitness_of{$_}/$total_fitness, @sorted_population);
