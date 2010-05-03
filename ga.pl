@@ -24,7 +24,7 @@ do {
   my @sorted_population = sort { $fitness_of{$b} 
 				   <=> $fitness_of{$a} } @population;
   @best = @sorted_population[0,1];
-  print $best[0], " ", $fitness_of{$best[0]}, "\n";
+#  print $best[0], " ", $fitness_of{$best[0]}, "\n";
   my $wheel = compute_wheel( \@sorted_population );
   my @slots = spin( $wheel, $population_size );
   my @pool;
@@ -38,17 +38,14 @@ do {
   } while ( @pool <= $population_size );
 
   @population = ();
+  map( $_ = mutate($_), @pool );
   for ( my $i = 0; $i < $population_size/2 -1 ; $i++ )  {
     my $first = $pool[rand($#pool)];
     my $second = $pool[rand($#pool)];
     
     push @population, crossover( $first, $second );
   }
-  for my $p (@population ) {
-      if ( rand() < $mutation_rate ) {
-	  $p = mutate( $p );
-      }
-  }
+ 
   map( compute_fitness( $_ ), @population );
   push @population, @best;
 } while ( ( $this_generation++ < $generations ) &&
