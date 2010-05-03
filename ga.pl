@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+use sort '_quicksort';
+
 my $chromosome_length = shift || 16;
 my $population_size = shift || 32;
 my $generations = shift || 100;
