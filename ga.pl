@@ -46,7 +46,7 @@ do {
     push @population, crossover( $first, $second );
   }
  
-  map( compute_fitness( $_ ), @population );
+  map( (!$fitness_of{$_})?compute_fitness( $_ ):1, @population );
   push @population, @best;
 } while ( ( $this_generation++ < $generations ) &&
 	  ($fitness_of{$best[0]} < $chromosome_length ) );
