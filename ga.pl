@@ -53,18 +53,6 @@ do {
 } while ( ( $this_generation++ < $generations ) &&
 	  ($fitness_of{$best[0]} < $chromosome_length ) );
 
-sub compute_wheel {
-    my ($population,$total_fitness) = @_;
-    my @wheel = map( $fitness_of{$_}/$total_fitness, @$population);
-    return \@wheel;
-}
-
-sub spin {
-  my ( $wheel, $slots ) = @_;
-  my @slots = map( $_*$slots, @$wheel );
-  return @slots;
-}
-
 sub random_chromosome {
   my $length = shift;
   my $string = '';
