@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Sort::Key qw(rnkeysort);
+use Sort::Key::Top qw(rnkeytop) ;
 
 my $chromosome_length = shift || 16;
 my $population_size = shift || 32;
@@ -25,10 +25,8 @@ do {
     my $total_fitness = 0;
     map( ((!$fitness_of{$_})?compute_fitness( $_ ):1) 
 	 && ( $total_fitness += $fitness_of{$_} ), @population );
-    my @sorted_population = rnkeysort { $fitness_of{$_} } @population;
-    @best = @sorted_population[0,1];
-#    print $best[0], " ", $fitness_of{$best[0]}, "\n";
-    my @wheel = map( $fitness_of{$_}/$total_fitness, @sorted_population);
+    @best = rnkeytop { $fitness_of{$_} } 2 => @population;
+    my @wheel = map( $fitness_of{$_}/$total_fitness, @population);
     my @slots = spin( \@wheel, $population_size );
     my @pool;
     my $index = 0;
@@ -36,7 +34,7 @@ do {
 	my $p = $index++ % @slots;
 	my $copies = $slots[$p];
 	for (1..$copies) {
-	    push @pool, $sorted_population[$p];
+	    push @pool, $population[$p];
 	}
     } while ( @pool <= $population_size );
     
@@ -60,6 +58,12 @@ sub random_chromosome {
     $string .= (rand >0.5)?1:0;
   }
   $string;
+}
+
+sub spin {
+   my ( $wheel, $slots ) = @_;
+   my @slots = map( $_*$slots, @$wheel );
+   return @slots;
 }
 
 sub mutate {
