@@ -100,12 +100,15 @@ sub crossover {
 sub compute_fitness {
   my $chromosome = shift;
   my $fitness = 0;
-  for ( my $i = 0; $i < length($chromosome); $i+= BLOCK_SIZE ) {
-      my $block = substr( $chromosome, $i, BLOCK_SIZE );
-      my $ones = grep ( /1/, split(//,$block));
-      $fitness += $unitation[$ones];
+  my $copy_of = $chromosome;
+  while( $chromosome ) {
+    my $ones;
+    for ( my $i = 0; $i < BLOCK_SIZE; $i ++ ) {
+      $ones += chop $chromosome;
+    }
+    $fitness += $unitation[$ones];
   }
-  $fitness_of{$chromosome} = $fitness;
+  $fitness_of{$copy_of} = $fitness;
 }
 
 
