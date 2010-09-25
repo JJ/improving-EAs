@@ -24,12 +24,13 @@ my @population = map( random_chromosome( $chromosome_length , - RASTRIGIN_BOUNDS
 		      1..$population_size );
 
 my $max_rast = $chromosome_length*RASTRIGIN_BOUNDS2;
+my $fitness_base = $max_rast - $chromosome_length*RASTRIGIN_A;
 my ($this_generation,@best);
 do {
     my $total_fitness = 0;
-    map( ((!$_->{'fitness'})?compute_fitness( $_ ):1) 
-	 && ( $total_fitness += $_->{'fitness'} ), 
-	 @population );
+    map(  { (!$_->{'fitness'})?compute_fitness( $_ ):1;
+	  $total_fitness += $_->{'fitness'} } 
+	    @population );
     @best = rnkeytop { $_->{'fitness'} } 2 => @population;
     my @wheel = map( $_->{'fitness'}/$total_fitness, @population);
     my @slots = spin( \@wheel, $population_size );
@@ -119,13 +120,9 @@ sub crossover {
 
 sub compute_fitness {
   my $chromosome = shift;
-  my $size = @{$chromosome->{'vector'}};
-  my $fitness = RASTRIGIN_A*$size;
-  my @array = @{$chromosome->{'vector'}};
-  for ( my $i = 0; $i < $size; $i ++ ) {
-    $fitness += $array[$i]*$array[$i]- RASTRIGIN_A *cos(PI2*$array[$i]);
-  }
-  $chromosome->{'fitness'} = $max_rast-$fitness;
+  $chromosome->{'fitness'} = $fitness_base;
+  map( $chromosome->{'fitness'} -= $_*$_ - RASTRIGIN_A *cos(PI2*$_),
+       @{$chromosome->{'vector'}} );
 }
 
 
