@@ -3,13 +3,14 @@
 use strict;
 use warnings;
 
-use Sort::Key::Top qw(nkeytop) ;
+use Sort::Key::Top qw(rnkeytop) ;
 
 my $chromosome_length = shift || 5;
-my $population_size = shift || 64;
-my $generations = shift || 100;
-use constant PI2    => 2 * atan2(1, 1);
+my $population_size = shift || 128;
+my $generations = shift || 200;
+use constant PI2    => 8 * atan2(1, 1);
 use constant RASTRIGIN_OPTIMUM => 0;
+use constant RASTRIGIN_A => 10;
 
 print<<EOC;
 CL $chromosome_length
@@ -27,7 +28,7 @@ do {
     map( ((!$_->{'fitness'})?compute_fitness( $_ ):1) 
 	 && ( $total_fitness += $_->{'fitness'} ), 
 	 @population );
-    @best = nkeytop { $_->{'fitness'} } 2 => @population;
+    @best = rnkeytop { $_->{'fitness'} } 2 => @population;
     my @wheel = map( $_->{'fitness'}/$total_fitness, @population);
     my @slots = spin( \@wheel, $population_size );
     my @pool;
@@ -36,7 +37,7 @@ do {
 	my $p = $index++ % @slots;
 	my $copies = $slots[$p];
 	for (1..$copies) {
-	    push @pool, $population[$p];
+	    push @pool, copy_of($population[$p]);
 	}
     } while ( @pool <= $population_size );
     
@@ -85,6 +86,14 @@ sub spin {
    return @slots;
 }
 
+sub copy_of {
+    my $chromosome = shift;
+    my @vector;
+    push @vector, @{$chromosome->{'vector'}};
+    return { fitness => $chromosome->{'fitness'},
+	     vector => \@vector };
+}
+
 sub mutate {
   my $chromosome = shift;
   my $width = shift || 2;
@@ -99,10 +108,10 @@ sub crossover {
   my $xover_point_1 = int rand( $length - 2 );
   my $range = 1 + int rand ( $length - $xover_point_1 );
   my @swap_chrom = @{$chromosome_1->{'vector'}};
-  splice(@{$chromosome_1->{'vector'}}, $xover_point_1, $range,
-	 splice(@{$chromosome_2->{'vector'}}, $xover_point_1, $range) );
-  splice(@{$chromosome_2->{'vector'}}, $xover_point_1, $range,
-	 splice(@swap_chrom, $xover_point_1, $range) );
+  for ( my $i = $xover_point_1; $i < $xover_point_1+$range; $i ++ ) {
+      $chromosome_1->{'vector'}->[$i] = $chromosome_2->{'vector'}->[$i];
+      $chromosome_2->{'vector'}->[$i] = $swap_chrom[$i];
+  }
   $chromosome_1->{'fitness'} = $chromosome_1->{'fitness'} = undef;
   return ( $chromosome_1, $chromosome_2 );
 }
@@ -110,12 +119,13 @@ sub crossover {
 sub compute_fitness {
   my $chromosome = shift;
   my $size = @{$chromosome->{'vector'}};
-  my $fitness = 10*$size;
+  my $fitness = RASTRIGIN_A*$size;
   my @array = @{$chromosome->{'vector'}};
   for ( my $i = 0; $i < $size; $i ++ ) {
-    $fitness += $array[$i]-cos(PI2*$array[$i]);
+    $fitness += $array[$i]*$array[$i]- RASTRIGIN_A *cos(PI2*$array[$i]);
   }
-  $chromosome->{'fitness'} = $fitness;
+  print "Fitness raw $fitness\n";
+  $chromosome->{'fitness'} = 100-$fitness;
 }
 
 
