@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 use Sort::Key::Top qw(rnkeytop) ;
+use Clone::Fast qw(clone);
 
 my $chromosome_length = shift || 5;
 my $population_size = shift || 128;
@@ -40,9 +41,9 @@ do {
     my $index = 0;
     do {
 	my $p = $index++ % @slots;
-	my $copies = $slots[$p];
-	for (1..$copies) {
-	    push @pool, copy_of($population[$p]);
+	if ( $slots[$p] >= 1 )  {
+	  my $clone =  clone($population[$p]);
+	  map { push @pool, $clone } 1..$slots[$p];
 	}
     } while ( @pool <= $population_size );
     
@@ -92,14 +93,6 @@ sub spin {
    my ( $wheel, $slots ) = @_;
    my @slots = map( $_*$slots, @$wheel );
    return @slots;
-}
-
-sub copy_of {
-    my $chromosome = shift;
-    my @vector;
-    push @vector, @{$chromosome->{'vector'}};
-    return { fitness => $chromosome->{'fitness'},
-	     vector => \@vector };
 }
 
 sub crossover {
