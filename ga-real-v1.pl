@@ -24,15 +24,12 @@ my @population = map( random_chromosome( $chromosome_length , - RASTRIGIN_BOUNDS
 		      1..$population_size );
 
 my $max_rast = $chromosome_length*RASTRIGIN_BOUNDS2;
-my $fitness_base = $max_rast - $chromosome_length*RASTRIGIN_A;
 my ($this_generation,@best);
-my $mut_range_min = -1;
-my $mut_width = 2;
 do {
     my $total_fitness = 0;
-    map(  { (!$_->{'fitness'})?compute_fitness( $_ ):1;
-	  $total_fitness += $_->{'fitness'} } 
-	    @population );
+    map( ((!$_->{'fitness'})?compute_fitness( $_ ):1) 
+	 && ( $total_fitness += $_->{'fitness'} ), 
+	 @population );
     @best = rnkeytop { $_->{'fitness'} } 2 => @population;
     my @wheel = map( $_->{'fitness'}/$total_fitness, @population);
     my @slots = spin( \@wheel, $population_size );
@@ -46,11 +43,8 @@ do {
 	}
     } while ( @pool <= $population_size );
     
-    map {my $mutation_point = rand( @{$_->{'vector'}} );
-	 $_->{'vector'}->[$mutation_point] += $mut_range_min+rand($mut_width);
-	 undef $_->{'fitness'}}
-      @pool ;
     @population = ();
+    map( mutate($_), @pool );
     for ( my $i = 0; $i < $population_size/2 -1 ; $i++ )  {
 	my $first = $pool[rand($#pool)];
 	my $second = $pool[rand($#pool)];
@@ -102,6 +96,14 @@ sub copy_of {
 	     vector => \@vector };
 }
 
+sub mutate {
+  my $chromosome = shift;
+  my $width = shift || 2;
+  my $mutation_point = rand( @{$chromosome->{'vector'}} );
+  $chromosome->{'vector'}->[$mutation_point] += -($width/2)+rand($width);
+  $chromosome->{'fitness'} = undef;
+}
+
 sub crossover {
   my ($chromosome_1, $chromosome_2) = @_;
   my $length = @{$chromosome_1->{'vector'}};
@@ -111,16 +113,19 @@ sub crossover {
   my @swap_chrom = @{$chromosome_1->{'vector'}}[@swap_positions];
   @{$chromosome_1->{'vector'}}[@swap_positions] = @{$chromosome_2->{'vector'}}[@swap_positions];
   @{$chromosome_2->{'vector'}}[@swap_positions] = @swap_chrom;
-  undef $chromosome_1->{'fitness'};
-  undef $chromosome_1->{'fitness'};
+  $chromosome_1->{'fitness'} = $chromosome_1->{'fitness'} = undef;
   return ( $chromosome_1, $chromosome_2 );
 }
 
 sub compute_fitness {
   my $chromosome = shift;
-  $chromosome->{'fitness'} = $fitness_base;
-  map( $chromosome->{'fitness'} -= $_*$_ - RASTRIGIN_A *cos(PI2*$_),
-       @{$chromosome->{'vector'}} );
+  my $size = @{$chromosome->{'vector'}};
+  my $fitness = RASTRIGIN_A*$size;
+  my @array = @{$chromosome->{'vector'}};
+  for ( my $i = 0; $i < $size; $i ++ ) {
+    $fitness += $array[$i]*$array[$i]- RASTRIGIN_A *cos(PI2*$array[$i]);
+  }
+  $chromosome->{'fitness'} = $max_rast-$fitness;
 }
 
 

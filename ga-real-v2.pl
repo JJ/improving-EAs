@@ -26,8 +26,6 @@ my @population = map( random_chromosome( $chromosome_length , - RASTRIGIN_BOUNDS
 my $max_rast = $chromosome_length*RASTRIGIN_BOUNDS2;
 my $fitness_base = $max_rast - $chromosome_length*RASTRIGIN_A;
 my ($this_generation,@best);
-my $mut_range_min = -1;
-my $mut_width = 2;
 do {
     my $total_fitness = 0;
     map(  { (!$_->{'fitness'})?compute_fitness( $_ ):1;
@@ -46,11 +44,8 @@ do {
 	}
     } while ( @pool <= $population_size );
     
-    map {my $mutation_point = rand( @{$_->{'vector'}} );
-	 $_->{'vector'}->[$mutation_point] += $mut_range_min+rand($mut_width);
-	 undef $_->{'fitness'}}
-      @pool ;
     @population = ();
+    map( mutate($_), @pool );
     for ( my $i = 0; $i < $population_size/2 -1 ; $i++ )  {
 	my $first = $pool[rand($#pool)];
 	my $second = $pool[rand($#pool)];
@@ -102,6 +97,14 @@ sub copy_of {
 	     vector => \@vector };
 }
 
+sub mutate {
+  my $chromosome = shift;
+  my $width = shift || 2;
+  my $mutation_point = rand( @{$chromosome->{'vector'}} );
+  $chromosome->{'vector'}->[$mutation_point] += -($width/2)+rand($width);
+  $chromosome->{'fitness'} = undef;
+}
+
 sub crossover {
   my ($chromosome_1, $chromosome_2) = @_;
   my $length = @{$chromosome_1->{'vector'}};
@@ -111,8 +114,7 @@ sub crossover {
   my @swap_chrom = @{$chromosome_1->{'vector'}}[@swap_positions];
   @{$chromosome_1->{'vector'}}[@swap_positions] = @{$chromosome_2->{'vector'}}[@swap_positions];
   @{$chromosome_2->{'vector'}}[@swap_positions] = @swap_chrom;
-  undef $chromosome_1->{'fitness'};
-  undef $chromosome_1->{'fitness'};
+  $chromosome_1->{'fitness'} = $chromosome_1->{'fitness'} = undef;
   return ( $chromosome_1, $chromosome_2 );
 }
 
