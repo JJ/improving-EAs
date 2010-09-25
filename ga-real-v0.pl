@@ -20,7 +20,7 @@ PS $population_size
 GEN $generations
 EOC
 
-my @population = map( random_chromosome( $chromosome_length , - RASTRIGIN_BOUNDS, RASTRIGIN_BOUNDS * 2), 
+my @population = map( random_chromosome( $chromosome_length , -5.12, 10.24), 
 		      1..$population_size );
 
 my $max_rast = $chromosome_length*RASTRIGIN_BOUNDS2;
@@ -65,8 +65,8 @@ my $best = join( ";", @{$best[0]->{'vector'}} );
 print<<EOC;
 Finished after $generations generations
 Best: $best
+  Fitness $best[0]->{'fitness'}
 EOC
-print  "    Fitness ", $max_rast - $best[0]->{'fitness'}, "\n";
 
 # ------------------------------
 
@@ -109,10 +109,11 @@ sub crossover {
   my $length = @{$chromosome_1->{'vector'}};
   my $xover_point_1 = int rand( $length - 2 );
   my $range = 1 + int rand ( $length - $xover_point_1 );
-  my @swap_positions = $xover_point_1..($xover_point_1+$range-1);
-  my @swap_chrom = @{$chromosome_1->{'vector'}}[@swap_positions];
-  @{$chromosome_1->{'vector'}}[@swap_positions] = @{$chromosome_2->{'vector'}}[@swap_positions];
-  @{$chromosome_2->{'vector'}}[@swap_positions] = @swap_chrom;
+  my @swap_chrom = @{$chromosome_1->{'vector'}};
+  for ( my $i = $xover_point_1; $i < $xover_point_1+$range; $i ++ ) {
+      $chromosome_1->{'vector'}->[$i] = $chromosome_2->{'vector'}->[$i];
+      $chromosome_2->{'vector'}->[$i] = $swap_chrom[$i];
+  }
   $chromosome_1->{'fitness'} = $chromosome_1->{'fitness'} = undef;
   return ( $chromosome_1, $chromosome_2 );
 }
