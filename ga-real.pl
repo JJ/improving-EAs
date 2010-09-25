@@ -21,8 +21,8 @@ PS $population_size
 GEN $generations
 EOC
 
-my @population = map( random_chromosome( $chromosome_length , - RASTRIGIN_BOUNDS, RASTRIGIN_BOUNDS * 2), 
-		      1..$population_size );
+my @population = map(  { vector => [ map( - RASTRIGIN_BOUNDS + rand( RASTRIGIN_BOUNDS * 2), 1..$chromosome_length ) ],
+			 fitness => undef },  1..$population_size );
 
 my $max_rast = $chromosome_length*RASTRIGIN_BOUNDS2;
 my $fitness_base = $max_rast - $chromosome_length*RASTRIGIN_A;
@@ -77,22 +77,9 @@ print  "    Fitness ", $max_rast - $best[0]->{'fitness'}, "\n";
 
 # ------------------------------
 
-sub random_chromosome {
-  my $length = shift;
-  my $min = shift || -1;
-  my $range = shift || 2;
-  my @vector = ();
-  for (1..$length) {
-      push @vector, $min + rand($range);
-  }
-  return { vector => \@vector,
-	   fitness => undef };
-}
-
 sub spin {
    my ( $wheel, $slots ) = @_;
-   my @slots = map( $_*$slots, @$wheel );
-   return @slots;
+   map( $_*$slots, @$wheel );
 }
 
 sub crossover {
