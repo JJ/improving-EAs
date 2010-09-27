@@ -18,7 +18,7 @@ end
 function compute_fitness (chromosome)
    ones = 0
    for i=1,chromosome:len() do 
-      ones = ones + ( (chromosome.sub(i,i) == "1") and 1 or 0 )
+      ones = ones + ( (chromosome:sub(i,i) == "1") and 1 or 0 )
    end
    return ones
 end
