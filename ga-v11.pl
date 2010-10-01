@@ -21,7 +21,7 @@ my @population = map( random_chromosome( $chromosome_length ),
 
 my %fitness_of;
 my ($this_generation,@best);
-while  ( $this_generation++ <= $generations ) {
+do {
     my $total_fitness = 0;
     map( ((!$fitness_of{$_})?compute_fitness( $_ ):1) 
 	 && ( $total_fitness += $fitness_of{$_} ), @population );
@@ -39,22 +39,18 @@ while  ( $this_generation++ <= $generations ) {
     } while ( @pool <= $population_size );
     
     @population = ();
+    map( $_ = mutate($_), @pool );
     for ( my $i = 0; $i < $population_size/2 -1 ; $i++ )  {
 	my $first = $pool[rand($#pool)];
 	my $second = $pool[rand($#pool)];
 	
 	push @population, crossover( $first, $second );
     }
-    map( $_ = mutate($_), @population );
     
     push @population, @best;
-    last if ($fitness_of{$best[0]} >= $chromosome_length  );
-}
+} while ( ( $this_generation++ < $generations ) &&
+	  ($fitness_of{$best[0]} < $chromosome_length ) );
 
-print "Best ", $best[0], " fitness ", $fitness_of{$best[0]}, 
-    "\nGeneration ", $this_generation, "\n";
-
-#-------------------------------------------------------------
 sub random_chromosome {
   my $length = shift;
   my $string = '';

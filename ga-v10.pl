@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Sort::Key::Top qw(rnkeytop) ;
+use Sort::Key qw(rnkeysort);
 
 my $chromosome_length = shift || 16;
 my $population_size = shift || 32;
@@ -21,12 +21,13 @@ my @population = map( random_chromosome( $chromosome_length ),
 
 my %fitness_of;
 my ($this_generation,@best);
-while  ( $this_generation++ <= $generations ) {
+do {
     my $total_fitness = 0;
     map( ((!$fitness_of{$_})?compute_fitness( $_ ):1) 
 	 && ( $total_fitness += $fitness_of{$_} ), @population );
-    @best = rnkeytop { $fitness_of{$_} } 2 => @population;
-    my @wheel = map( $fitness_of{$_}/$total_fitness, @population);
+    my @sorted_population = rnkeysort { $fitness_of{$_} } @population;
+    @best = @sorted_population[0,1];
+    my @wheel = map( $fitness_of{$_}/$total_fitness, @sorted_population);
     my @slots = spin( \@wheel, $population_size );
     my @pool;
     my $index = 0;
@@ -34,27 +35,23 @@ while  ( $this_generation++ <= $generations ) {
 	my $p = $index++ % @slots;
 	my $copies = $slots[$p];
 	for (1..$copies) {
-	    push @pool, $population[$p];
+	    push @pool, $sorted_population[$p];
 	}
     } while ( @pool <= $population_size );
     
     @population = ();
+    map( $_ = mutate($_), @pool );
     for ( my $i = 0; $i < $population_size/2 -1 ; $i++ )  {
 	my $first = $pool[rand($#pool)];
 	my $second = $pool[rand($#pool)];
 	
 	push @population, crossover( $first, $second );
     }
-    map( $_ = mutate($_), @population );
     
     push @population, @best;
-    last if ($fitness_of{$best[0]} >= $chromosome_length  );
-}
+} while ( ( $this_generation++ < $generations ) &&
+	  ($fitness_of{$best[0]} < $chromosome_length ) );
 
-print "Best ", $best[0], " fitness ", $fitness_of{$best[0]}, 
-    "\nGeneration ", $this_generation, "\n";
-
-#-------------------------------------------------------------
 sub random_chromosome {
   my $length = shift;
   my $string = '';

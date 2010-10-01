@@ -69,8 +69,6 @@ print( "CL "..chromosome_length.."\nPS "..population_size.."\nGEN "..generations
 
 --profiler.start()
 
-math.randomseed( os.time() ) -- true randomness
-
 population = {};
 for i=1,population_size do 
     population[i] = random_chromosome( chromosome_length )
@@ -80,8 +78,7 @@ fitness_of = {}
 best = {}
 this_generation = 0
 
-
-while (this_generation <= generations ) do 
+repeat 
    total_fitness = 0;
 --   print( "Generation "..this_generation )
    for i=1,population_size do
@@ -102,10 +99,6 @@ while (this_generation <= generations ) do
       best[i] = population[i]  -- keep for later
    end
 
-   if (fitness_of[best[1]] >= chromosome_length ) then
-      break
-   end
-
    wheel ={}
    for i=1,population_size do
       wheel[i] = fitness_of[population[i]]/total_fitness
@@ -124,6 +117,7 @@ while (this_generation <= generations ) do
       end
    end
    population = {}
+   mutate( pool )
    for i = 1,population_size/2-1 do
       first = pool[math.random(#pool)];
       second = pool[math.random(#pool)];
@@ -131,12 +125,10 @@ while (this_generation <= generations ) do
       population[#population+1] = first_prime
       population[#population+1] = second_prime
    end
-   mutate( population )
    population[#population+1] = best[1]
    population[#population+1] = best[2]
    this_generation = this_generation + 1
 
-end
-
+until ( this_generation > generations ) or (fitness_of[best[1]] >= chromosome_length ) 
 --profiler.stop()
-print( "Best\n\t"..best[1].." -> "..fitness_of[best[1]].. "\nGeneration " .. this_generation )
+print( "Best\n\t"..best[1].." -> "..fitness_of[best[1]] )
