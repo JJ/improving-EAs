@@ -31,15 +31,6 @@ function compute_fitness (chromosome)
    return ones
 end
 
--- Spins the roulette wheel
-function spin (wheel, slots ) 
-   slots_for = {}
-   for i=1,#wheel do 
-      slots_for[i] = slots*wheel[i] 
-   end
-   return slots_for
-end
-
 -- Mutate a single chromosome
 function mutate ( pool )
    for i=1,#pool do
@@ -108,12 +99,6 @@ while (this_generation <= generations ) do
    if (fitness_of[best[1]] >= chromosome_length ) then
       break
    end
-
-   wheel ={}
-   for i=1,population_size do
-      wheel[i] = fitness_of[population[i]]/total_fitness
-   end
-   slots = spin( wheel, population_size )
 
    pool = {}
    index = 0

@@ -23,16 +23,7 @@ function compute_fitness (chromosome)
    return ones
 end
 
--- Spins the roulette wheel
-function spin (wheel, slots ) 
-   slots_for = {}
-   for i=1,#wheel do 
-      slots_for[i] = slots*wheel[i] 
-   end
-   return slots_for
-end
-
--- Mutate a single chromosome
+-- Mutate all chromosomes in the population
 function mutate ( pool )
    for i=1,#pool do
       mutation_point = math.random( pool[i]:len() )
@@ -59,7 +50,7 @@ end
 
 -- Here goes the program
 
---require "profiler"
+require "profiler"
 
 chromosome_length = tonumber(arg[1]) or 16;
 population_size = tonumber(arg[2]) or 32;
@@ -67,7 +58,7 @@ generations = tonumber(arg[3]) or 100;
 
 print( "CL "..chromosome_length.."\nPS "..population_size.."\nGEN "..generations.."\n")
 
---profiler.start()
+profiler.start()
 
 math.randomseed( os.time() ) -- true randomness
 
@@ -80,17 +71,23 @@ fitness_of = {}
 best = {}
 this_generation = 0
 
-
 while (this_generation <= generations ) do 
    total_fitness = 0;
 --   print( "Generation "..this_generation )
+   best_fitness = 0
    for i=1,population_size do
       if ( fitness_of[population[i]] == nil ) then
 	 fitness_of[population[i]] = compute_fitness( population[i] )
       end
+      if ( fitness_of[population[i]] > best_fitness ) then
+	 if best[1] then
+	    best[2] = best[1]
+	 end
+	 best[1] = population[i]
+	 best_fitness = fitness_of[population[i]]
+      end
       total_fitness = total_fitness + fitness_of[population[i]]
    end
-   table.sort( population, compare )
 
 --[[   for i,value in ipairs(population) do
       key = table.concat( value )
@@ -98,29 +95,20 @@ while (this_generation <= generations ) do
    end
 ]]--
 
-   for i=1,2 do
-      best[i] = population[i]  -- keep for later
-   end
-
    if (fitness_of[best[1]] >= chromosome_length ) then
       break
    end
 
-   wheel ={}
-   for i=1,population_size do
-      wheel[i] = fitness_of[population[i]]/total_fitness
-   end
-   slots = spin( wheel, population_size )
-
    pool = {}
    index = 0
    while #pool < population_size do
-      p = 1 + index % #slots
-      index = index+1
-      
-      copies = slots[p]
-      for i=1,math.floor(copies) do
-	 pool[#pool+1] = population[p]
+      first = population[ math.random(#population)]
+      second = population[ math.random(#population)]
+
+      if ( fitness_of[first] > fitness_of[second] ) then
+	 pool[#pool+1] = first
+      else
+	 pool[#pool+1] = second
       end
    end
    population = {}
@@ -138,5 +126,5 @@ while (this_generation <= generations ) do
 
 end
 
---profiler.stop()
+profiler.stop()
 print( "Best\n\t"..best[1].." -> "..fitness_of[best[1]].. "\nGeneration " .. this_generation )
