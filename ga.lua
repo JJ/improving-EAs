@@ -80,7 +80,6 @@ fitness_of = {}
 best = {}
 this_generation = 0
 
-
 while (this_generation <= generations ) do 
    total_fitness = 0;
 --   print( "Generation "..this_generation )
