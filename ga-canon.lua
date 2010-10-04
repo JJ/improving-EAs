@@ -1,3 +1,13 @@
+--[[
+@title Evolutionary algorith
+@param a chromosome length
+@default a 16
+@param b population size
+@default b 32
+@param c number of generations
+@default c 40
+]]--
+
 -- Create a random chromosome
 function random_chromosome (length)
    chromosome = ''
@@ -57,9 +67,9 @@ end
 
 -- Here goes the program
 
-chromosome_length = 32;
-population_size = 32;
-generations =  20;
+chromosome_length = a;
+population_size = b;
+generations =  c;
 
 math.randomseed( os.time() ) -- true randomness
 
