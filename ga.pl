@@ -8,7 +8,6 @@ use Sort::Key::Top qw(rnkeytop) ;
 my $chromosome_length = shift || 16;
 my $population_size = shift || 32;
 my $generations = shift || 100;
-my $mutation_rate = shift || 0.1;
 
 print<<EOC;
 CL $chromosome_length
